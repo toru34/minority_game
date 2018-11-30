@@ -1,5 +1,10 @@
 # Prerequisites
 *.d
+.vscode
+.ipynb_checkpoints
+*.dSYM
+*.txt
+test.cpp
 
 # Compiled Object files
 *.slo
