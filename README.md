@@ -1,7 +1,7 @@
 ## Minority Game
 
-Reproduction code (C++) of Minority game.
+C++ Reproduction code of Minority game (MG)[1] and Grand canonical minority game (GCMG)[2].
 
 ### References
-- D. Challet et al. "Emergence of cooperation and organization in an evolutionary game". Physica A. 1997
-- R. Savit et al. "Adaptive Competition, Market Efficiency, and Phase Transitions". Physical Review Letters. 1999
+[1] D. Challet et al., "Emergence of cooperation and organization in an evolutionary game", Physica A (1997)
+[2] D. Challet et al., "Stylized facts of financial markets and market crashes in Minority Games", Physica A (2001) 
