@@ -29,7 +29,7 @@ extern const float INF;
 
 extern std::mt19937 rng;
 extern std::default_random_engine engine;
-extern std::uniform_int_distribution<int> rng_integer;
+extern std::uniform_int_distribution<int> rng_nagents_integer;
 extern std::uniform_int_distribution<int> rng_history_integer;
 extern std::uniform_real_distribution<float> rng_uniform;
 

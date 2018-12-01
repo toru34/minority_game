@@ -2,8 +2,6 @@
 #define BASE_AGENT_H_
 
 #include <vector>
-#include <string>
-#include <map>
 
 class BaseAgent
 {

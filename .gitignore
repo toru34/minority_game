@@ -5,6 +5,7 @@
 *.dSYM
 *.txt
 test.cpp
+_*
 
 # Compiled Object files
 *.slo

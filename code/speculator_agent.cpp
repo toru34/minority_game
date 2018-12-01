@@ -1,6 +1,5 @@
 #include "speculator_agent.h"
 
-// SpeculatorAgent::SpeculatorAgent(const int s, const int m, const float eps)
 SpeculatorAgent::SpeculatorAgent(const int s, const int p, const float eps)
 {
     // Passive Strategy
@@ -8,7 +7,6 @@ SpeculatorAgent::SpeculatorAgent(const int s, const int p, const float eps)
 
     // Active Strategy
     for (int i = 0; i < s; ++i) {
-        // this->strategies_ptrs.emplace_back(std::make_shared<ActiveStrategy>(m));
         this->strategies_ptrs.emplace_back(std::make_shared<ActiveStrategy>(p));
     }
 }
@@ -55,16 +53,11 @@ void SpeculatorAgent::update_winning_history(const int excess_demand)
     int action = this->action_history.back();
     int result = action * excess_demand;
 
-    if (result < 0)
-    {
+    if (result < 0) {
         this->winning_history.emplace_back(WIN);
-    }
-    else if (result == 0)
-    {
+    } else if (result == 0) {
         this->winning_history.emplace_back(EVEN);
-    }
-    else
-    {
+    } else {
         this->winning_history.emplace_back(LOSE);
     }
 }

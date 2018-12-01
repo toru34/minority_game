@@ -33,7 +33,7 @@ void save_vector(const std::vector<T>& x, const char* result_dir, const char* fi
 
 void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, Environment& environment, const int p)
 {
-    // Get m random history string
+    // Get random history integer (x ~ {0, 1, ..., P - 1})
     int history_integer = environment.get_random_history_integer();
 
     // Get agents' actions

@@ -1,7 +1,6 @@
 #ifndef MINORITY_GAME_STRATEGY_H_
 #define MINORITY_GAME_STRATEGY_H_
 
-#include <cmath>
 #include <vector>
 
 #include "config.h"
@@ -9,7 +8,6 @@
 
 class MinorityGameStrategy : public BaseStrategy
 {
-    // int m;
     int p;
     std::vector<int> actions;
 public:

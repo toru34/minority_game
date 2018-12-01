@@ -1,8 +1,6 @@
 #ifndef PASSIVE_STRATEGY_H_
 #define PASSIVE_STRATEGY_H_
 
-#include <vector>
-
 #include "config.h"
 #include "base_strategy.h"
 

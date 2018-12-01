@@ -1,8 +1,6 @@
 #ifndef MINORITY_GAME_AGENT_H_
 #define MINORITY_GAME_AGENT_H_
 
-#include <string>
-#include <map>
 #include <memory>
 #include <vector>
 

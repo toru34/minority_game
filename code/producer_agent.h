@@ -1,9 +1,7 @@
 #ifndef PRODUCER_AGENT_H_
 #define PRODUCER_AGENT_H_
 
-#include <map>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "base_agent.h"

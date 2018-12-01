@@ -1,8 +1,6 @@
 #ifndef SPECULATOR_AGENT_H_
 #define SPECULATOR_AGENT_H_
 
-#include <map>
-#include <string>
 #include <vector>
 #include <memory>
 

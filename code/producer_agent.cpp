@@ -1,9 +1,7 @@
 #include "producer_agent.h"
 
-// ProducerAgent::ProducerAgent(const int m)
 ProducerAgent::ProducerAgent(const int p)
 {
-    // this->strategy_ptr = std::make_unique<ActiveStrategy>(m);
     this->strategy_ptr = std::make_unique<ActiveStrategy>(p);
 }
 

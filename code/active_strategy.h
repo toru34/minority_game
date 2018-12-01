@@ -9,7 +9,6 @@
 
 class ActiveStrategy : public BaseStrategy
 {
-    // int m;
     int p;
     std::vector<int> actions;
 public:

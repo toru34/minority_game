@@ -26,6 +26,6 @@ const float INF = 1001001001;
 
 std::mt19937 rng(34);
 std::default_random_engine engine(34);
-std::uniform_int_distribution<int> rng_integer(- N_AGENTS, N_AGENTS);
+std::uniform_int_distribution<int> rng_nagents_integer(- N_AGENTS, N_AGENTS);
 std::uniform_int_distribution<int> rng_history_integer(0, P - 1); // x ~ {0, 1, ..., P - 1}
 std::uniform_real_distribution<float> rng_uniform(0.0, 1.0); // x ~ [0, 1)

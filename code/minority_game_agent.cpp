@@ -1,17 +1,15 @@
 #include "minority_game_agent.h"
 
-// MinorityGameAgent::MinorityGameAgent(const int s, const int m)
 MinorityGameAgent::MinorityGameAgent(const int s, const int p)
 {
     for (int i = 0; i < s; ++i) {
-        // this->strategies_ptrs.emplace_back(std::make_shared<MinorityGameStrategy>(m));
         this->strategies_ptrs.emplace_back(std::make_shared<MinorityGameStrategy>(p));
     }
 }
 
 int MinorityGameAgent::choose_action(const int history_integer)
 {
-    std::shared_ptr<BaseStrategy> best_strategy_ptr = this->get_best_strategy_ptr(); // TODO: 戻り値はポインタの参照???
+    auto best_strategy_ptr = this->get_best_strategy_ptr();
     int action = best_strategy_ptr->choose_action(history_integer);
     this->action_history.emplace_back(action);
 
@@ -51,16 +49,11 @@ void MinorityGameAgent::update_winning_history(const int excess_demand)
     int action = this->action_history.back();
     int result = action * excess_demand;
 
-    if (result < 0)
-    {
+    if (result < 0) {
         this->winning_history.emplace_back(WIN);
-    }
-    else if (result == 0)
-    {
+    } else if (result == 0) {
         this->winning_history.emplace_back(EVEN);
-    }
-    else
-    {
+    } else {
         this->winning_history.emplace_back(LOSE);
     }
 }
