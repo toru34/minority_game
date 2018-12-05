@@ -1,4 +1,5 @@
 #include <map>
+#include <cmath>
 #include <ctime>
 #include <string>
 #include <numeric>
@@ -14,6 +15,7 @@
 #include "producer_agent.h"
 #include "speculator_agent.h"
 #include "utils.h"
+#include "spy_agent.h"
 
 // TODO: constをつけられるところはつける
 
@@ -70,19 +72,31 @@ bool is_config_valid(std::map<std::string, float>& config)
 
 void create_result_dir_chars(std::map<std::string, float>& config, char* result_dir)
 {
-    sprintf(result_dir, "../simulation_results/s%d_p%d_eps%.2f_nmins%d_npros%d_nspes%d_niters%d_nruns%d",
+    sprintf(result_dir, "../simulation_results/s%d_p%d_eps%.2f_rhok%.2f_nmins%d_npros%d_nspes%d_nspys%d_niters%d_nruns%d",
         static_cast<int>(config.find("s")->second),
         static_cast<int>(config.find("p")->second),
         config.find("e")->second,
+        config.find("rhok")->second,
         static_cast<int>(config.find("nm")->second),
         static_cast<int>(config.find("np")->second),
         static_cast<int>(config.find("ns")->second),
+        static_cast<int>(config.find("nspy")->second),
         static_cast<int>(config.find("ni")->second),
         static_cast<int>(config.find("nr")->second)
     );
 }
 
-void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, Environment& environment, const float success_rate)
+template <typename T>
+std::vector<T> slice_vector(const std::vector<T>& x, float rate)
+{
+    auto iter_first = std::begin(x);
+    auto iter_last = std::begin(x) + std::floor(x.size() * rate);
+
+    std::vector<T> x_sliced(iter_first, iter_last);
+    return x_sliced;
+}
+
+void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, std::vector<std::shared_ptr<SpyAgent> >& spy_agents_ptrs, Environment& environment, const float spy_rate)
 {
     // Get random history integer (x ~ {0, 1, ..., P - 1})
     int history_integer = environment.get_random_history_integer();
@@ -92,6 +106,14 @@ void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, Environment& en
     std::vector<int> actions;
     for (auto& agent_ptr : agents_ptrs) {
         int action = agent_ptr->choose_action(history_integer);
+        actions.emplace_back(action);
+    }
+
+    // Get spies' actionss
+    for (auto& spy_agent_ptr : spy_agents_ptrs) {
+        std::shuffle(std::begin(actions), std::end(actions), RNG);
+        auto actions_sliced = slice_vector(actions, spy_rate);
+        int action = spy_agent_ptr->choose_action(actions_sliced);
         actions.emplace_back(action);
     }
 
@@ -119,6 +141,7 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
     Environment environment(config.find("p")->second);
 
     std::vector<std::shared_ptr<BaseAgent> > agents_ptrs;
+    std::vector<std::shared_ptr<SpyAgent> > spy_agents_ptrs;
 
     // Minority agents
     for (int i = 0; i < config.find("nm")->second; ++i) {
@@ -144,17 +167,23 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
         ));
     }
 
+    // Spy agents
+    for (int i = 0; i < config.find("nspy")->second; ++i) {
+        spy_agents_ptrs.emplace_back(std::make_shared<SpyAgent>());
+    }
+
     // Iterate games
     for (int i = 0; i < config.find("ni")->second; ++i) {
         game(
             agents_ptrs,
+            spy_agents_ptrs,
             environment,
-            config.find("r")->second
+            config.find("rhok")->second
         );
     }
 
     auto attendance_history = environment.get_attendance_history();
-    save_vector(attendance_history, result_dir, "attendance_history", r); // TODO rとconfig.find("r")->secondが紛らわしいので修正
+    save_vector(attendance_history, result_dir, "attendance_history", r);
 
     auto buys_history = environment.get_buys_history();
     save_vector(buys_history, result_dir, "buys_history", r);
@@ -176,9 +205,11 @@ int main(int argc, char **argv)
         {"s", -1}, // Number of strategies
         {"p", -1}, // Number of possible histories
         {"e", -1}, // Constant learing rate for passive strategy
+        {"rhok", -1}, // Spy rate
         {"nm", -1}, // Number of minority agents
         {"np", -1}, // Number of producer agents
         {"ns", -1}, // Number of speculator agents
+        {"nspy", -1}, // Number of spy agents
         {"ni", -1}, // Number of iterations
         {"nr", -1} // Number of runs
     };

@@ -19,4 +19,17 @@ void print(std::map<T1, T2>& x)
     std::cout << str << std::endl;
 }
 
+template <typename T>
+void print(std::vector<T>& x)
+{
+    std::string str = "{";
+    for (auto iter = std::begin(x); iter != std::end(x); ++iter) {
+        str += std::to_string(*iter) + ", ";
+    }
+    str.erase(str.size() - 2, 2);
+    str += "}";
+
+    std::cout << str << std::endl;
+}
+
 #endif
