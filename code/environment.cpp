@@ -1,12 +1,14 @@
 #include "environment.h"
 
-Environment::Environment()
+Environment::Environment(const int p)
 {
+    this->p = p;
 }
 
 int Environment::get_random_history_integer()
 {
-    return rng_history_integer(engine); // x ~ {0, 1, 2, ..., 1-P}
+    std::uniform_int_distribution<int> rng_history_integer(0, this->p - 1);
+    return rng_history_integer(ENGINE); // x ~ {0, 1, 2, ..., 1-P}
 }
 
 std::vector<int>& Environment::get_minority_side_history()
@@ -34,11 +36,17 @@ std::vector<int>& Environment::get_excess_demand_history()
     return this->excess_demand_history;
 }
 
-void Environment::update_history(const std::map<std::string, int> res)
+void Environment::update_history(const std::vector<int>& actions)
 {
-    this->minority_side_history.emplace_back(res.find("minority_side")->second);
-    this->buys_history.emplace_back(res.find("buys")->second);
-    this->sells_history.emplace_back(res.find("sells")->second);
-    this->attendance_history.emplace_back(res.find("attendance")->second);
-    this->excess_demand_history.emplace_back(res.find("excess_demand")->second);
+    int buys = std::count(std::begin(actions), std::end(actions), BUY);
+    int sells = std::count(std::begin(actions), std::end(actions), SELL);
+    int attendance = buys + sells;
+    int excess_demand = buys - sells;
+    int minority_side = buys > sells ? SELL : BUY;
+
+    this->minority_side_history.emplace_back(minority_side);
+    this->buys_history.emplace_back(buys);
+    this->sells_history.emplace_back(sells);
+    this->attendance_history.emplace_back(attendance);
+    this->excess_demand_history.emplace_back(excess_demand);
 }

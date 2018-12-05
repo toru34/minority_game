@@ -13,6 +13,9 @@
 #include "environment.h"
 #include "producer_agent.h"
 #include "speculator_agent.h"
+#include "utils.h"
+
+// TODO: constをつけられるところはつける
 
 template<typename T>
 void save_vector(const std::vector<T>& x, const char* result_dir, const char* file_prefix, const int r)
@@ -31,12 +34,61 @@ void save_vector(const std::vector<T>& x, const char* result_dir, const char* fi
     f.close();
 }
 
-void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, Environment& environment, const int p)
+void parse_config(std::map<std::string, float>& config, int argc, char** argv)
+{
+    if (argc == 1) {
+        std::cout << "No argument is provided." << std::endl;
+    } else {
+        for (int i = 1; i < argc; ++i) {
+            if (i + 1 < argc) {
+                auto _key = std::string(argv[i]);
+                auto key = _key.substr(2, _key.size() - 2);
+                auto value = std::stof(argv[++i]);
+                if (config.count(key)) {
+                    config.find(key)->second = value;
+                } else {
+                    std::cout << "Invalid argument" << std::endl;
+                }
+            } else {
+                std::cout << "Invalid argument" << std::endl;
+            }
+        }
+    }
+}
+
+bool is_config_valid(std::map<std::string, float>& config)
+{
+    for (auto iter = std::begin(config); iter != std::end(config); ++iter) {
+        if (iter->second == -1) {
+            std::cout << "Parameter \"" << iter->first << "\" is missing." << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void create_result_dir_chars(std::map<std::string, float>& config, char* result_dir)
+{
+    sprintf(result_dir, "../simulation_results/s%d_p%d_eps%.2f_nmins%d_npros%d_nspes%d_niters%d_nruns%d",
+        static_cast<int>(config.find("s")->second),
+        static_cast<int>(config.find("p")->second),
+        config.find("e")->second,
+        static_cast<int>(config.find("nm")->second),
+        static_cast<int>(config.find("np")->second),
+        static_cast<int>(config.find("ns")->second),
+        static_cast<int>(config.find("ni")->second),
+        static_cast<int>(config.find("nr")->second)
+    );
+}
+
+void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, Environment& environment, const float success_rate)
 {
     // Get random history integer (x ~ {0, 1, ..., P - 1})
     int history_integer = environment.get_random_history_integer();
 
     // Get agents' actions
+    // TODO: std::accumulateを使う
     std::vector<int> actions;
     for (auto& agent_ptr : agents_ptrs) {
         int action = agent_ptr->choose_action(history_integer);
@@ -59,44 +111,50 @@ void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, Environment& en
     }
 
     // Update history
-    std::map<std::string, int> res;
-    res.insert(std::pair<std::string, int>("minority_side", minority_side));
-    res.insert(std::pair<std::string, int>("buys", buys));
-    res.insert(std::pair<std::string, int>("sells", sells));
-    res.insert(std::pair<std::string, int>("attendance", attendance));
-    res.insert(std::pair<std::string, int>("excess_demand", excess_demand));
-
-    environment.update_history(res);
+    environment.update_history(actions);
 }
 
-void run(const int s, const int p, const float eps, const int n_minority_agents, const int n_producer_agents, const int n_speculator_agents, const int n_iters, const int n_runs, const int r, const char *result_dir)
+void run(std::map<std::string, float>& config, char* result_dir, int r)
 {
-    Environment environment;
+    Environment environment(config.find("p")->second);
 
     std::vector<std::shared_ptr<BaseAgent> > agents_ptrs;
 
     // Minority agents
-    for (int i = 0; i < n_minority_agents; ++i) {
-        agents_ptrs.emplace_back(std::make_shared<MinorityGameAgent>(s, p));
+    for (int i = 0; i < config.find("nm")->second; ++i) {
+        agents_ptrs.emplace_back(std::make_shared<MinorityGameAgent>(
+            static_cast<int>(config.find("s")->second),
+            static_cast<int>(config.find("p")->second)
+        ));
     }
 
     // Producer agents
-    for (int i = 0; i < n_producer_agents; ++i) {
-        agents_ptrs.emplace_back(std::make_shared<ProducerAgent>(p));
+    for (int i = 0; i < config.find("np")->second; ++i) {
+        agents_ptrs.emplace_back(std::make_shared<ProducerAgent>(
+            static_cast<int>(config.find("p")->second)
+        ));
     }
 
     // Speculator agents
-    for (int i = 0; i < n_speculator_agents; ++i) {
-        agents_ptrs.emplace_back(std::make_shared<SpeculatorAgent>(s, p, eps));
+    for (int i = 0; i < config.find("ns")->second; ++i) {
+        agents_ptrs.emplace_back(std::make_shared<SpeculatorAgent>(
+            static_cast<int>(config.find("s")->second),
+            static_cast<int>(config.find("p")->second),
+            config.find("e")->second
+        ));
     }
 
     // Iterate games
-    for (int i = 0; i < n_iters; ++i) {
-        game(agents_ptrs, environment, p);
+    for (int i = 0; i < config.find("ni")->second; ++i) {
+        game(
+            agents_ptrs,
+            environment,
+            config.find("r")->second
+        );
     }
 
     auto attendance_history = environment.get_attendance_history();
-    save_vector(attendance_history, result_dir, "attendance_history", r);
+    save_vector(attendance_history, result_dir, "attendance_history", r); // TODO rとconfig.find("r")->secondが紛らわしいので修正
 
     auto buys_history = environment.get_buys_history();
     save_vector(buys_history, result_dir, "buys_history", r);
@@ -113,22 +171,42 @@ int main(int argc, char **argv)
     std::clock_t start, end;
     start = std::clock();
 
+    // TODO: Multiple keysに対応させる
+    std::map<std::string, float> config = {
+        {"s", -1}, // Number of strategies
+        {"p", -1}, // Number of possible histories
+        {"e", -1}, // Constant learing rate for passive strategy
+        {"nm", -1}, // Number of minority agents
+        {"np", -1}, // Number of producer agents
+        {"ns", -1}, // Number of speculator agents
+        {"ni", -1}, // Number of iterations
+        {"nr", -1} // Number of runs
+    };
+
+    parse_config(config, argc, argv);
+    if (!is_config_valid(config)) {
+        std::cout << "Configuration is invalid." << std::endl;
+        return 0;
+    } else {
+        print(config);
+    }
+
     // Create dir
     char result_dir[500];
-    sprintf(result_dir, "../results/s%d_p%d_eps%.2f_nmins%d_npros%d_nspes%d_niters%d_nruns%d", S, P, EPS, N_MINORITY_AGENTS, N_PRODUCER_AGENTS, N_SPECULATOR_AGENTS, N_ITERS, N_RUNS);
+    create_result_dir_chars(config, result_dir);
 
     char command[1000];
     sprintf(command, "rm -rf %s; mkdir -p %s", result_dir, result_dir);
     system(command);
 
     // Run experiment
-    for (int r = 0; r < N_RUNS; ++r)
+    for (int r = 0; r < config.find("nr")->second; ++r)
     {
-        run(S, P, EPS, N_MINORITY_AGENTS, N_PRODUCER_AGENTS, N_SPECULATOR_AGENTS, N_ITERS, N_RUNS, r, result_dir);
+        run(config, result_dir, r);
     }
 
     end = std::clock();
-    std::cout << "S: " << S << ", P: " << P << ", Time: " << (end - start) / 1000000 << "[s]" << std::endl;
+    std::cout << "Time: " << (end - start) / 1000000 << "[s]" << std::endl;
 
     return 0;
 }

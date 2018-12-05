@@ -4,7 +4,7 @@ ActiveStrategy::ActiveStrategy(const int p)
 {
     this->score = 0;
     for (unsigned int i = 0; i < p; ++i) {
-        this->actions.emplace_back(rng_uniform(engine) < 0.5 ? BUY : SELL);
+        this->actions.emplace_back(RNG_UNIFORM(ENGINE) < 0.5 ? BUY : SELL);
     }
 }
 
