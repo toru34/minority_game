@@ -9,9 +9,16 @@
 
 class SpyAgent
 {
+    std::vector<int> action_history;
+    std::vector<int> winning_history;
 public:
-    SpyAgent();
+    SpyAgent() {};
     int choose_action(std::vector<int>&);
+    std::vector<int>& get_action_history();
+    std::vector<int>& get_winning_history();
+    void update_action_history(const int);
+    void update_winning_history(const int);
+    ~SpyAgent() {};
 };
 
 #endif

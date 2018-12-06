@@ -1,0 +1,2 @@
+all:
+	g++ -std=c++17 main.cpp active_strategy.cpp environment.cpp minority_game_agent.cpp minority_game_strategy.cpp passive_strategy.cpp producer_agent.cpp speculator_agent.cpp spy_agent.cpp config.cpp -O2

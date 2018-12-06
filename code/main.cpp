@@ -19,10 +19,10 @@
 
 // TODO: constをつけられるところはつける
 
-template<typename T>
+template <typename T>
 void save_vector(const std::vector<T>& x, const char* result_dir, const char* file_prefix, const int r)
 {
-    char path[500];
+    char path[1000];
     sprintf(path, "%s/%s_%d.csv", result_dir, file_prefix, r);
     std::ofstream f;
     f.open(path);
@@ -33,6 +33,25 @@ void save_vector(const std::vector<T>& x, const char* result_dir, const char* fi
         f << v << ",";
     }
     f << "\n";
+    f.close();
+}
+
+template <typename T>
+void save_2dvector(const std::vector<std::vector<T> >& x, const char* result_dir, const char* file_prefix, const int r)
+{
+    char path[1000];
+    sprintf(path, "%s/%s_%d.csv", result_dir, file_prefix, r);
+    std::ofstream f;
+    f.open(path);
+    if (!f.is_open()) {
+        std::cout << "Error opening file" << std::endl;
+    }
+    for (auto& v : x) {
+        for (auto& a : v) {
+            f << a << ",";
+        }
+        f << "\n";
+    }
     f.close();
 }
 
@@ -132,6 +151,10 @@ void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, std::vector<std
         agent_ptr->update_winning_history(excess_demand);
     }
 
+    for (auto& spy_agent_ptr : spy_agents_ptrs) {
+        spy_agent_ptr->update_winning_history(excess_demand);
+    }
+
     // Update history
     environment.update_history(actions);
 }
@@ -193,6 +216,24 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
 
     auto excess_demand_history = environment.get_excess_demand_history();
     save_vector(excess_demand_history, result_dir, "excess_demand_history", r);
+
+    std::vector<std::vector<int> > action_histories_minority_game_agents;
+    std::vector<std::vector<int> > winning_histories_minority_game_agents;
+    for (auto agent_ptr : agents_ptrs) {
+        action_histories_minority_game_agents.emplace_back(agent_ptr->get_action_history());
+        winning_histories_minority_game_agents.emplace_back(agent_ptr->get_winning_history());
+    }
+    save_2dvector(action_histories_minority_game_agents, result_dir, "action_histories_minority_game_agents", r);
+    save_2dvector(winning_histories_minority_game_agents, result_dir, "winning_histories_minority_agme_agents", r);
+
+    std::vector<std::vector<int> > action_histories_spy_agents;
+    std::vector<std::vector<int> > winning_histories_spy_agents;
+    for (auto spy_agent_ptr : spy_agents_ptrs) {
+        action_histories_spy_agents.emplace_back(spy_agent_ptr->get_action_history());
+        winning_histories_spy_agents.emplace_back(spy_agent_ptr->get_winning_history());
+    }
+    save_2dvector(action_histories_spy_agents, result_dir, "action_histories_spy_agents", r);
+    save_2dvector(winning_histories_spy_agents, result_dir, "winning_histories_spy_agents", r);
 }
 
 int main(int argc, char **argv)
