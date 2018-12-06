@@ -55,6 +55,12 @@ void save_2dvector(const std::vector<std::vector<T> >& x, const char* result_dir
     f.close();
 }
 
+void compute_n_spy_agents(std::map<std::string, float>& config)
+{
+    int nspy = std::floor((config.find("rhos")->second / (1 - config.find("rhos")->second)) * config.find("nm")->second);
+    config.insert(std::pair<std::string, float>("nspy", nspy));
+}
+
 void parse_config(std::map<std::string, float>& config, int argc, char** argv)
 {
     if (argc == 1) {
@@ -91,15 +97,15 @@ bool is_config_valid(std::map<std::string, float>& config)
 
 void create_result_dir_chars(std::map<std::string, float>& config, char* result_dir)
 {
-    sprintf(result_dir, "../simulation_results/s%d_p%d_eps%.2f_rhok%.2f_nmins%d_npros%d_nspes%d_nspys%d_niters%d_nruns%d",
+    sprintf(result_dir, "../simulation_results/s%d_p%d_eps%.2f_rhok%.2f_rhos%.2f_nmins%d_npros%d_nspes%d_niters%d_nruns%d",
         static_cast<int>(config.find("s")->second),
         static_cast<int>(config.find("p")->second),
         config.find("e")->second,
         config.find("rhok")->second,
+        config.find("rhos")->second,
         static_cast<int>(config.find("nm")->second),
         static_cast<int>(config.find("np")->second),
         static_cast<int>(config.find("ns")->second),
-        static_cast<int>(config.find("nspy")->second),
         static_cast<int>(config.find("ni")->second),
         static_cast<int>(config.find("nr")->second)
     );
@@ -217,22 +223,16 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
     auto excess_demand_history = environment.get_excess_demand_history();
     save_vector(excess_demand_history, result_dir, "excess_demand_history", r);
 
-    std::vector<std::vector<int> > action_histories_minority_game_agents;
     std::vector<std::vector<int> > winning_histories_minority_game_agents;
     for (auto agent_ptr : agents_ptrs) {
-        action_histories_minority_game_agents.emplace_back(agent_ptr->get_action_history());
         winning_histories_minority_game_agents.emplace_back(agent_ptr->get_winning_history());
     }
-    save_2dvector(action_histories_minority_game_agents, result_dir, "action_histories_minority_game_agents", r);
-    save_2dvector(winning_histories_minority_game_agents, result_dir, "winning_histories_minority_agme_agents", r);
+    save_2dvector(winning_histories_minority_game_agents, result_dir, "winning_histories_minority_game_agents", r);
 
-    std::vector<std::vector<int> > action_histories_spy_agents;
     std::vector<std::vector<int> > winning_histories_spy_agents;
     for (auto spy_agent_ptr : spy_agents_ptrs) {
-        action_histories_spy_agents.emplace_back(spy_agent_ptr->get_action_history());
         winning_histories_spy_agents.emplace_back(spy_agent_ptr->get_winning_history());
     }
-    save_2dvector(action_histories_spy_agents, result_dir, "action_histories_spy_agents", r);
     save_2dvector(winning_histories_spy_agents, result_dir, "winning_histories_spy_agents", r);
 }
 
@@ -250,12 +250,14 @@ int main(int argc, char **argv)
         {"nm", -1}, // Number of minority agents
         {"np", -1}, // Number of producer agents
         {"ns", -1}, // Number of speculator agents
-        {"nspy", -1}, // Number of spy agents
+        // {"nspy", -1}, // Number of spy agents
+        {"rhos", -1}, // Ratio of spy agents
         {"ni", -1}, // Number of iterations
         {"nr", -1} // Number of runs
     };
 
     parse_config(config, argc, argv);
+    compute_n_spy_agents(config);
     if (!is_config_valid(config)) {
         std::cout << "Configuration is invalid." << std::endl;
         return 0;
