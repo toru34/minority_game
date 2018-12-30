@@ -250,7 +250,6 @@ int main(int argc, char **argv)
         {"nm", -1}, // Number of minority agents
         {"np", -1}, // Number of producer agents
         {"ns", -1}, // Number of speculator agents
-        // {"nspy", -1}, // Number of spy agents
         {"rhos", -1}, // Ratio of spy agents
         {"ni", -1}, // Number of iterations
         {"nr", -1} // Number of runs

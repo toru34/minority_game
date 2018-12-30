@@ -2,15 +2,15 @@
 
 # Parameters
 ss="2"
-ps="2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384"
-es="0"
-rhoks="0.2"
-rhoss="0.09 0.17 0.23 0.28 0.33"
-nms="101"
-nps="0"
-nss="0"
+ps="16"
+es="0.01"
+rhoks="0.00"
+rhoss="0.00"
+nms="0"
+nps="1200"
+nss="1001"
 nis="50000"
-nrs="1"
+nrs="10"
 
 for s in $ss; do
     for p in $ps; do
