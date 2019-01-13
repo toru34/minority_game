@@ -19,129 +19,29 @@
 
 // TODO: constをつけられるところはつける
 
-template <typename T>
-void save_vector(const std::vector<T>& x, const char* result_dir, const char* file_prefix, const int r)
-{
-    char path[1000];
-    sprintf(path, "%s/%s_%d.csv", result_dir, file_prefix, r);
-    std::ofstream f;
-    f.open(path);
-    if (!f.is_open()) {
-        std::cout << "Error opening file" << std::endl;
-    }
-    for (auto &v : x) {
-        f << v << ",";
-    }
-    f << "\n";
-    f.close();
-}
-
-template <typename T>
-void save_2dvector(const std::vector<std::vector<T> >& x, const char* result_dir, const char* file_prefix, const int r)
-{
-    char path[1000];
-    sprintf(path, "%s/%s_%d.csv", result_dir, file_prefix, r);
-    std::ofstream f;
-    f.open(path);
-    if (!f.is_open()) {
-        std::cout << "Error opening file" << std::endl;
-    }
-    for (auto& v : x) {
-        for (auto& a : v) {
-            f << a << ",";
-        }
-        f << "\n";
-    }
-    f.close();
-}
-
-void compute_n_spy_agents(std::map<std::string, float>& config)
-{
-    int nspy = std::floor((config.find("rhos")->second / (1 - config.find("rhos")->second)) * config.find("nm")->second);
-    config.insert(std::pair<std::string, float>("nspy", nspy));
-}
-
-void parse_config(std::map<std::string, float>& config, int argc, char** argv)
-{
-    if (argc == 1) {
-        std::cout << "No argument is provided." << std::endl;
-    } else {
-        for (int i = 1; i < argc; ++i) {
-            if (i + 1 < argc) {
-                auto _key = std::string(argv[i]);
-                auto key = _key.substr(2, _key.size() - 2);
-                auto value = std::stof(argv[++i]);
-                if (config.count(key)) {
-                    config.find(key)->second = value;
-                } else {
-                    std::cout << "Invalid argument" << std::endl;
-                }
-            } else {
-                std::cout << "Invalid argument" << std::endl;
-            }
-        }
-    }
-}
-
-bool is_config_valid(std::map<std::string, float>& config)
-{
-    for (auto iter = std::begin(config); iter != std::end(config); ++iter) {
-        if (iter->second == -1) {
-            std::cout << "Parameter \"" << iter->first << "\" is missing." << std::endl;
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void create_result_dir_chars(std::map<std::string, float>& config, char* result_dir)
-{
-    sprintf(result_dir, "../simulation_results/s%d_p%d_eps%.2f_rhok%.2f_rhos%.2f_nmins%d_npros%d_nspes%d_niters%d_nruns%d",
-        static_cast<int>(config.find("s")->second),
-        static_cast<int>(config.find("p")->second),
-        config.find("e")->second,
-        config.find("rhok")->second,
-        config.find("rhos")->second,
-        static_cast<int>(config.find("nm")->second),
-        static_cast<int>(config.find("np")->second),
-        static_cast<int>(config.find("ns")->second),
-        static_cast<int>(config.find("ni")->second),
-        static_cast<int>(config.find("nr")->second)
-    );
-}
-
-template <typename T>
-std::vector<T> slice_vector(const std::vector<T>& x, float rate)
-{
-    auto iter_first = std::begin(x);
-    auto iter_last = std::begin(x) + std::floor(x.size() * rate);
-
-    std::vector<T> x_sliced(iter_first, iter_last);
-    return x_sliced;
-}
-
-void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, std::vector<std::shared_ptr<SpyAgent> >& spy_agents_ptrs, Environment& environment, const float spy_rate)
+void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, std::vector<std::shared_ptr<SpyAgent> >& spy_agents_ptrs, Environment& environment, const float rhok)
 {
     // Get random history integer (x ~ {0, 1, ..., P - 1})
     int history_integer = environment.get_random_history_integer();
 
     // Get agents' actions
     // TODO: std::accumulateを使う
-    std::vector<int> actions;
+    std::vector<int> actions_normal_agents;
     for (auto& agent_ptr : agents_ptrs) {
         int action = agent_ptr->choose_action(history_integer);
-        actions.emplace_back(action);
+        actions_normal_agents.emplace_back(action);
     }
 
     // Get spies' actionss
+    std::vector<int> actions_spy_agents;
     for (auto& spy_agent_ptr : spy_agents_ptrs) {
-        std::shuffle(std::begin(actions), std::end(actions), RNG);
-        auto actions_sliced = slice_vector(actions, spy_rate);
+        std::shuffle(std::begin(actions_normal_agents), std::end(actions_normal_agents), RNG);
+        auto actions_sliced = slice_vector(actions_normal_agents, rhok);
         int action = spy_agent_ptr->choose_action(actions_sliced);
-        actions.emplace_back(action);
+        actions_spy_agents.emplace_back(action);
     }
 
+    auto actions = concat_vectors(actions_normal_agents, actions_spy_agents);
     int buys = std::count(std::begin(actions), std::end(actions), BUY);
     int sells = std::count(std::begin(actions), std::end(actions), SELL);
     int attendance = buys + sells;
@@ -162,7 +62,7 @@ void game(std::vector<std::shared_ptr<BaseAgent> >& agents_ptrs, std::vector<std
     }
 
     // Update history
-    environment.update_history(actions);
+    environment.update_history(actions, actions_normal_agents);
 }
 
 void run(std::map<std::string, float>& config, char* result_dir, int r)
@@ -192,7 +92,7 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
         agents_ptrs.emplace_back(std::make_shared<SpeculatorAgent>(
             static_cast<int>(config.find("s")->second),
             static_cast<int>(config.find("p")->second),
-            config.find("e")->second
+            config.find("eps")->second
         ));
     }
 
@@ -216,6 +116,9 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
 
     auto buys_history = environment.get_buys_history();
     save_vector(buys_history, result_dir, "buys_history", r);
+
+    auto buys_normal_agents_history = environment.get_buys_normal_agents_history();
+    save_vector(buys_normal_agents_history, result_dir, "buys_normal_agents_history", r);
 
     auto sells_history = environment.get_sells_history();
     save_vector(sells_history, result_dir, "sells_history", r);
@@ -245,7 +148,7 @@ int main(int argc, char **argv)
     std::map<std::string, float> config = {
         {"s", -1}, // Number of strategies
         {"p", -1}, // Number of possible histories
-        {"e", -1}, // Constant learing rate for passive strategy
+        {"eps", -1}, // Constant learing rate for passive strategy
         {"rhok", -1}, // Spy rate
         {"nm", -1}, // Number of minority agents
         {"np", -1}, // Number of producer agents
