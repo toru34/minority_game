@@ -164,7 +164,7 @@ int main(int argc, char **argv)
         std::cout << "Configuration is invalid." << std::endl;
         return 0;
     } else {
-        print(config);
+        // print(config);
     }
 
     // Create dir
