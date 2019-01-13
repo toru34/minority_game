@@ -3,7 +3,7 @@ import subprocess
 import numpy as np
 
 N_ITERS = 50000
-N_RUNS = 10
+N_RUNS = 5
 
 def to_array(values):
     return np.array([values]).flatten()
@@ -25,6 +25,19 @@ def run(args):
                                             )
                                             print(command)
                                             subprocess.call(command, shell=True)
+
+# args_market_ecology = {
+#     's': 2,
+#     'p': 64,
+#     'eps': -100,
+#     'rhok': 0,
+#     'rhos': 0,
+#     'nm': 200,
+#     'ns': 0,
+#     'np': np.linspace(0, 200, 11),
+#     'ni': N_ITERS,
+#     'nr': N_RUNS
+# }
 
 args_volatility = {
     's': 2,
@@ -64,3 +77,8 @@ args_fat_tail = {
     'ni': N_ITERS,
     'nr': N_RUNS
 }
+
+# run(args_market_ecology)
+run(args_volatility)
+run(args_autocorrelation)
+run(args_fat_tail)
