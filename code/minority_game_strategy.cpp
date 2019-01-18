@@ -1,11 +1,21 @@
 #include "minority_game_strategy.h"
 
-MinorityGameStrategy::MinorityGameStrategy(const int p)
+MinorityGameStrategy::MinorityGameStrategy(const int p, bool is_hetero)
 {
     this->p = p;
     this->score = 0;
-    for (unsigned int i = 0; i < p; ++i) {
-        this->actions.emplace_back(RNG_UNIFORM(ENGINE) < 0.5 ? BUY : SELL);
+
+    if (is_hetero) {
+        std::uniform_int_distribution<int> rng_history_integer(0, this->p);
+        int k = rng_history_integer(ENGINE); // k ~ {0, 1, 2, ..., P}
+        for (unsigned int i = 0; i < p; ++i) {
+            this->actions.emplace_back(RNG_UNIFORM(ENGINE) < (k / static_cast<float>(this->p)) ? BUY : SELL);
+        }
+
+    } else {
+        for (unsigned int i = 0; i < p; ++i) {
+            this->actions.emplace_back(RNG_UNIFORM(ENGINE) < 0.5 ? BUY : SELL);
+        }
     }
 }
 

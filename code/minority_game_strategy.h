@@ -11,7 +11,7 @@ class MinorityGameStrategy : public BaseStrategy
     int p;
     std::vector<int> actions;
 public:
-    MinorityGameStrategy(const int);
+    MinorityGameStrategy(const int, bool);
     float get_score();
     int choose_action(const int);
     void update_score(const int, const int);

@@ -1,9 +1,9 @@
 #include "minority_game_agent.h"
 
-MinorityGameAgent::MinorityGameAgent(const int s, const int p)
+MinorityGameAgent::MinorityGameAgent(const int s, const int p, bool is_hetero)
 {
     for (int i = 0; i < s; ++i) {
-        this->strategies_ptrs.emplace_back(std::make_shared<MinorityGameStrategy>(p));
+        this->strategies_ptrs.emplace_back(std::make_shared<MinorityGameStrategy>(p, is_hetero));
     }
 }
 

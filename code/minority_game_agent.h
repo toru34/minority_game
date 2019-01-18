@@ -12,7 +12,7 @@ class MinorityGameAgent : public BaseAgent
 {
     std::vector<std::shared_ptr<BaseStrategy> > strategies_ptrs;
 public:
-    MinorityGameAgent(const int, const int);
+    MinorityGameAgent(const int, const int, bool);
     int choose_action(const int);
     std::shared_ptr<BaseStrategy> get_best_strategy_ptr();
     std::vector<int>& get_action_history();

@@ -76,7 +76,8 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
     for (int i = 0; i < config.find("nm")->second; ++i) {
         agents_ptrs.emplace_back(std::make_shared<MinorityGameAgent>(
             static_cast<int>(config.find("s")->second),
-            static_cast<int>(config.find("p")->second)
+            static_cast<int>(config.find("p")->second),
+            false // TODO: configから呼び出す
         ));
     }
 
