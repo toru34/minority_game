@@ -38,7 +38,8 @@ args_market_ecology = {
     'ns': 0,
     'np': 0,
     'ni': N_ITERS,
-    'nr': N_RUNS
+    'nr': N_RUNS,
+    'save_agents_history': 0
 }
 
 

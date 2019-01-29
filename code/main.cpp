@@ -127,17 +127,22 @@ void run(std::map<std::string, float>& config, char* result_dir, int r)
     auto excess_demand_history = environment.get_excess_demand_history();
     save_vector(excess_demand_history, result_dir, "excess_demand_history", r);
 
-    std::vector<std::vector<int> > winning_histories_minority_game_agents;
-    for (auto agent_ptr : agents_ptrs) {
-        winning_histories_minority_game_agents.emplace_back(agent_ptr->get_winning_history());
-    }
-    save_2dvector(winning_histories_minority_game_agents, result_dir, "winning_histories_minority_game_agents", r);
+    auto market_information_history = environment.get_market_information_history();
+    save_vector(market_information_history, result_dir, "market_information_history", r);
 
-    std::vector<std::vector<int> > winning_histories_spy_agents;
-    for (auto spy_agent_ptr : spy_agents_ptrs) {
-        winning_histories_spy_agents.emplace_back(spy_agent_ptr->get_winning_history());
+    if (config.find("save_agents_history")->second) {
+        std::vector<std::vector<int>> winning_histories_minority_game_agents;
+        for (auto agent_ptr : agents_ptrs) {
+            winning_histories_minority_game_agents.emplace_back(agent_ptr->get_winning_history());
+        }
+        save_2dvector(winning_histories_minority_game_agents, result_dir, "winning_histories_minority_game_agents", r);
+
+        std::vector<std::vector<int>> winning_histories_spy_agents;
+        for (auto spy_agent_ptr : spy_agents_ptrs) {
+            winning_histories_spy_agents.emplace_back(spy_agent_ptr->get_winning_history());
+        }
+        save_2dvector(winning_histories_spy_agents, result_dir, "winning_histories_spy_agents", r);
     }
-    save_2dvector(winning_histories_spy_agents, result_dir, "winning_histories_spy_agents", r);
 }
 
 int main(int argc, char **argv)
@@ -156,7 +161,8 @@ int main(int argc, char **argv)
         {"ns", -1}, // Number of speculator agents
         {"rhos", -1}, // Ratio of spy agents
         {"ni", -1}, // Number of iterations
-        {"nr", -1} // Number of runs
+        {"nr", -1}, // Number of runs
+        {"save_agents_history", -1} // Whether to save agents' history or not
     };
 
     parse_config(config, argc, argv);

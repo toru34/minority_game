@@ -8,7 +8,9 @@ Environment::Environment(const int p)
 int Environment::get_random_history_integer()
 {
     std::uniform_int_distribution<int> rng_history_integer(0, this->p - 1);
-    return rng_history_integer(ENGINE); // x ~ {0, 1, 2, ..., 1-P}
+    int market_information = rng_history_integer(ENGINE); // x ~ {0, 1, 2, ..., 1-P}
+    this->market_information_history.emplace_back(market_information);
+    return market_information;
 }
 
 std::vector<int>& Environment::get_minority_side_history()
@@ -39,6 +41,11 @@ std::vector<int>& Environment::get_sells_history()
 std::vector<int>& Environment::get_excess_demand_history()
 {
     return this->excess_demand_history;
+}
+
+std::vector<int>& Environment::get_market_information_history()
+{
+    return this->market_information_history;
 }
 
 void Environment::update_history(const std::vector<int>& actions, const std::vector<int>& actions_normal_agents)

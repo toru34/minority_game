@@ -16,6 +16,7 @@ class Environment
     std::vector<int> sells_history;
     std::vector<int> attendance_history;
     std::vector<int> excess_demand_history;
+    std::vector<int> market_information_history;
 public:
     Environment(const int);
     int get_random_history_integer();
@@ -25,6 +26,7 @@ public:
     std::vector<int>& get_buys_normal_agents_history();
     std::vector<int>& get_sells_history();
     std::vector<int>& get_excess_demand_history();
+    std::vector<int>& get_market_information_history();
     void update_history(const std::vector<int>&, const std::vector<int>&);
 };
 
